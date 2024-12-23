@@ -30,6 +30,7 @@ if __name__ == '__main__':
     pygame.init()
     fps = 60
 
+
     SIZE = width, height = 400, 400
     screen = pygame.display.set_mode((width, height))
     pygame.display.set_caption("Клечатое поле")

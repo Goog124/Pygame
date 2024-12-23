@@ -1,3 +1,5 @@
+import random
+
 import pygame
 
 
@@ -5,10 +7,11 @@ class Board:
     def __init__(self, width, height):
         self.width = width
         self.height = height
-        self.board = [[0] * width for _ in range(height)]
+        self.board = [[-1] * width for _ in range(height)]
         self.left = 10
         self.top = 10
         self.cell_size = (pygame.display.get_window_size()[1] - self.left) // self.width
+        self.set_mines()
 
     def set_view(self, left, top, cell_size):
         self.left = left
@@ -16,14 +19,30 @@ class Board:
         self.cell_size = cell_size
 
     def render(self, screen):
-        color = ["#000000", "#facecc"]
+        color = ["#000000", "#ffffff", "red"]
         for x in range(self.width):
             for y in range(self.height):
-                pygame.draw.rect(
-                    screen, color[1],
-                    (x * self.cell_size + self.left, y * self.cell_size + self.left,
-                     self.cell_size, self.cell_size), 1
-                )
+                if self.board[x][y] == 10:
+                    pygame.draw.rect(
+                        screen, color[2],
+                        (x * self.cell_size + self.left, y * self.cell_size + self.left,
+                         self.cell_size, self.cell_size))
+                    pygame.draw.rect(
+                        screen, color[1],
+                        (x * self.cell_size + self.left, y * self.cell_size + self.left,
+                         self.cell_size, self.cell_size), width=1)
+
+                else:
+                    pygame.draw.rect(
+                        screen, color[1],
+                        (x * self.cell_size + self.left, y * self.cell_size + self.left,
+                         self.cell_size, self.cell_size), 1
+                    )
+
+    def set_mines(self):
+        for i in range(10):
+            self.board[random.randint(0, self.width - 1)][random.randint(0, self.height - 1)] = 10
+
 
     def get_cell(self, mouse_pos):
         print(mouse_pos)

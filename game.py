@@ -18,7 +18,7 @@ class Board:
         self.cell_size = cell_size
 
     def render(self, screen):
-        color = ["#000000", "#ffffff", "red"]
+        color = ["black", "white", "red"]
         for x in range(self.width):
             for y in range(self.height):
                 pygame.draw.rect(
@@ -50,8 +50,18 @@ class Minesweeper(Board):
         for i in range(10):
             self.board[random.randint(0, self.width - 1)][random.randint(0, self.height - 1)] = 10
 
-    def open_cell(self):
-        pass
+    def open_cell(self, cell):
+        x, y = self.get_cell(cell)
+
+        counter = 0
+        if self.board[x][y] == -1:
+            for i in range(x - 1, x + 3):
+                for j in range(y - 1, y + 3):
+                    if (i > 0) and (j > 0) and (i < self.width) and (j < self.height):
+                        if self.board == 10:
+                            counter += 1
+        self.board[x][y] = counter
+        print(counter)
 
     def render(self, screen):
         color = ["#000000", "#ffffff", "red"]
@@ -92,7 +102,7 @@ if __name__ == '__main__':
                 running = False
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
-                    board.get_click(event.pos)
+                    board.open_cell(event.pos)
 
         screen.fill((0, 0, 0))
         board.render(screen)

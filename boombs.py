@@ -1,62 +1,63 @@
 import pygame
-import os
-import sys
 import random
 
 
-def load_image(name):
-    fullname = os.path.join('data', name)
-    if not os.path.isfile(fullname):
-        print(f"Файл с изображением '{fullname}' не найден")
-        sys.exit()
-    image = pygame.image.load(fullname)
-    return image
+class Ball(pygame.sprite.Sprite):
+    def __init__(self, radius, x, y):
+        super().__init__(all_sprites)
+        self.radius = radius
+        self.image = pygame.Surface((2 * radius, 2 * radius),
+                                    pygame.SRCALPHA, 32)
+        pygame.draw.circle(self.image, pygame.Color("red"),
+                           (radius, radius), radius)
+        self.rect = pygame.Rect(x, y, 2 * radius, 2 * radius)
+        self.vx = random.randint(-5, 5)
+        self.vy = random.randrange(-5, 5)
+
+    def update(self):
+        self.rect = self.rect.move(self.vx, self.vy)
+        if pygame.sprite.spritecollideany(self, horizontal_borders):
+            self.vy = -self.vy
+        if pygame.sprite.spritecollideany(self, vertical_borders):
+            self.vx = -self.vx
 
 
-class Bomb(pygame.sprite.Sprite):
-    image_bomb = load_image("bomb.png")
-    image_boom = load_image("boom.png")
 
-    def __init__(self, *group):
-        super().__init__(*group)
-        self.image = Bomb.image_bomb
-        self.rect = self.image.get_rect()
-        self.rect.x = random.randrange(34, width - (Bomb.image_boom.get_size()[0] - 34))
-        self.rect.y = random.randrange(27, height - (Bomb.image_boom.get_size()[1] - 27))
-
-    def update(self, mouse_pos):
-        x = mouse_pos[0]
-        y = mouse_pos[1]
-
-        if self.rect.x < x < self.image.get_size()[0] + self.rect.x and \
-                self.rect.y < y < self.image.get_size()[1] + self.rect.y and \
-                self.image is Bomb.image_bomb:
-            self.rect.x -= 34
-            self.rect.y -= 27
-            self.image = Bomb.image_boom
+class Border(pygame.sprite.Sprite):
+    # строго вертикальный или строго горизонтальный отрезок
+    def __init__(self, x1, y1, x2, y2):
+        super().__init__(all_sprites)
+        if x1 == x2:  # вертикальная стенка
+            self.add(vertical_borders)
+            self.image = pygame.Surface([1, y2 - y1])
+            self.rect = pygame.Rect(x1, y1, 1, y2 - y1)
+        else:  # горизонтальная стенка
+            self.add(horizontal_borders)
+            self.image = pygame.Surface([x2 - x1, 1])
+            self.rect = pygame.Rect(x1, y1, x2 - x1, 1)
 
 
-if __name__ == '__main__':
-    pygame.init()
-    size = width, height = 500, 500
-    screen = pygame.display.set_mode(size)
-    running = True
-
-    all_sprites = pygame.sprite.Group()
-    bomb_image = load_image("bomb.png")
-    for i in range(20):
-        Bomb(all_sprites)
-
-    while running:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                all_sprites.update(event.pos)
-
-        screen.fill((255, 255, 255))
-        all_sprites.draw(screen)
-        pygame.display.flip()
-
-    pygame.quit()
-
+pygame.init()
+size = width, height = 600, 600
+screen = pygame.display.set_mode(size)
+horizontal_borders = pygame.sprite.Group()
+vertical_borders = pygame.sprite.Group()
+all_sprites = pygame.sprite.Group()
+clock = pygame.time.Clock()
+running = True
+Border(5, 5, width - 5, 5)
+Border(5, height - 5, width - 5, height - 5)
+Border(5, 5, 5, height - 5)
+Border(width - 5, 5, width - 5, height - 5)
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            Ball(20, event.pos[0], event.pos[1])
+    screen.fill((255, 255, 255))
+    all_sprites.update()
+    all_sprites.draw(screen)
+    pygame.display.flip()
+    clock.tick(60)
+pygame.quit()

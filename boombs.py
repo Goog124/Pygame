@@ -4,15 +4,19 @@ import random
 
 class Ball(pygame.sprite.Sprite):
     def __init__(self, radius, x, y):
-        super().__init__(all_sprites)
+        super().__init__(all_sprites, balls_group)
         self.radius = radius
         self.image = pygame.Surface((2 * radius, 2 * radius),
                                     pygame.SRCALPHA, 32)
         pygame.draw.circle(self.image, pygame.Color("red"),
                            (radius, radius), radius)
         self.rect = pygame.Rect(x, y, 2 * radius, 2 * radius)
-        self.vx = random.randint(-5, 5)
-        self.vy = random.randrange(-5, 5)
+        self.vx = 0
+        self.vy = 0
+        while self.vx == 0:
+            self.vx = random.randint(-8, 8)
+        while self.vy == 0:
+            self.vy = random.randint(-8, 8)
 
     def update(self):
         self.rect = self.rect.move(self.vx, self.vy)
@@ -20,7 +24,9 @@ class Ball(pygame.sprite.Sprite):
             self.vy = -self.vy
         if pygame.sprite.spritecollideany(self, vertical_borders):
             self.vx = -self.vx
-
+        tmp_sprite = pygame.sprite.spritecollideany(self, balls_group)
+        if tmp_sprite is not self:
+            tmp_sprite.vy, tmp_sprite.vx, self.vy, self.vx = -self.vy, -self.vx, -tmp_sprite.vy, -tmp_sprite.vx
 
 
 class Border(pygame.sprite.Sprite):
@@ -43,6 +49,7 @@ screen = pygame.display.set_mode(size)
 horizontal_borders = pygame.sprite.Group()
 vertical_borders = pygame.sprite.Group()
 all_sprites = pygame.sprite.Group()
+balls_group = pygame.sprite.Group()
 clock = pygame.time.Clock()
 running = True
 Border(5, 5, width - 5, 5)

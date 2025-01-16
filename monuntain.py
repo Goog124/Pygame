@@ -39,6 +39,12 @@ class Landing(pygame.sprite.Sprite):
     def update(self):
         if not pygame.sprite.collide_mask(self, mountain):
             self.rect = self.rect.move(0, 1)
+        else:
+            self.image = load_image("boom.png")
+
+
+
+
 
 if __name__ == '__main__':
     pygame.init()

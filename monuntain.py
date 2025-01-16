@@ -37,7 +37,8 @@ class Landing(pygame.sprite.Sprite):
         self.rect.y = pos[1]
 
     def update(self):
-        self.rect = self.rect.move(0, 1)
+        if not pygame.sprite.collide_mask(self, mountain):
+            self.rect = self.rect.move(0, 1)
 
 if __name__ == '__main__':
     pygame.init()
@@ -53,6 +54,7 @@ if __name__ == '__main__':
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 Landing(event.pos)
         screen.fill((255, 255, 255))
+        all_sprites.update()
         all_sprites.draw(screen)
         pygame.display.flip()
     pygame.quit()

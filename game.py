@@ -1,110 +1,67 @@
-import random
-
-import pygame
-
-
-class Board:
-    def __init__(self, width, height):
-        self.width = width
-        self.height = height
-        self.board = [[-1] * width for _ in range(height)]
-        self.left = 10
-        self.top = 10
-        self.cell_size = (pygame.display.get_window_size()[1] - self.left) // self.width
-
-    def set_view(self, left, top, cell_size):
-        self.left = left
-        self.top = top
-        self.cell_size = cell_size
-
-    def render(self, screen):
-        color = ["black", "white", "red"]
-        for x in range(self.width):
-            for y in range(self.height):
-                pygame.draw.rect(
-                    screen, color[1],
-                    (x * self.cell_size + self.left, y * self.cell_size + self.left,
-                     self.cell_size, self.cell_size), width=1)
-
-    def get_cell(self, mouse_pos):
-        print(mouse_pos)
-        cell_x = (mouse_pos[0] - self.left) // self.cell_size
-        cell_y = (mouse_pos[1] - self.top) // self.cell_size
-        if (0 <= cell_x <= self.width and 0 <= cell_y <= self.height):
-            return cell_x, cell_y
+import sys
+from random import randint
+from PyQt6.QtGui import QPainter, QColor
+from PyQt6.QtWidgets import QApplication, QMainWindow
+from PyQt6 import QtCore, QtGui, QtWidgets
 
 
-    def on_click(self, cell_coords):
-        print(cell_coords)
+class Ui_Form(object):
+    def setupUi(self, Form):
+        Form.setObjectName("Form")
+        Form.resize(568, 424)
+        self.pushButton = QtWidgets.QPushButton(parent=Form)
+        self.pushButton.setGeometry(QtCore.QRect(10, 10, 81, 31))
+        self.pushButton.setObjectName("pushButton")
 
-    def get_click(self, mouse_pos):
-        cell = self.get_cell(mouse_pos)
-        self.on_click(cell)
+        self.retranslateUi(Form)
+        QtCore.QMetaObject.connectSlotsByName(Form)
 
-class Minesweeper(Board):
-    def __init__(self, w, h):
-        super().__init__(w, h)
-        self.set_mines()
+    def retranslateUi(self, Form):
+        _translate = QtCore.QCoreApplication.translate
+        Form.setWindowTitle(_translate("Form", "Form"))
+        self.pushButton.setText(_translate("Form", "start"))
 
-    def set_mines(self):
-        for i in range(10):
-            self.board[random.randint(0, self.width - 1)][random.randint(0, self.height - 1)] = 10
 
-    def open_cell(self, cell):
-        x, y = self.get_cell(cell)
+class Git(Ui_Form, QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setupUi(self)
+        self.initUI()
+        self.flag = False
+        self.sps = []
 
-        counter = 0
-        if self.board[x][y] == -1:
-            for i in range(x - 1, x + 3):
-                for j in range(y - 1, y + 3):
-                    if (i > 0) and (j > 0) and (i < self.width) and (j < self.height):
-                        if self.board == 10:
-                            counter += 1
-        self.board[x][y] = counter
-        print(counter)
+    def initUI(self):
+        self.pushButton.clicked.connect(self.run)
 
-    def render(self, screen):
-        color = ["#000000", "#ffffff", "red"]
-        for x in range(self.width):
-            for y in range(self.height):
-                if self.board[x][y] == 10:
-                    pygame.draw.rect(
-                        screen, color[2],
-                        (x * self.cell_size + self.left, y * self.cell_size + self.left,
-                         self.cell_size, self.cell_size))
-                    pygame.draw.rect(
-                        screen, color[1],
-                        (x * self.cell_size + self.left, y * self.cell_size + self.left,
-                         self.cell_size, self.cell_size), width=1)
+    def run(self):
+        self.flag = True
+        self.update()
 
-                else:
-                    pygame.draw.rect(
-                        screen, color[1],
-                        (x * self.cell_size + self.left, y * self.cell_size + self.left,
-                         self.cell_size, self.cell_size), 1
-                    )
+    def paintEvent(self, event):
+        qp = QPainter()
+        if self.flag:
+            qp.begin(self)
+            self.draw_flag(qp)
+            qp.end()
+        self.flag = False
+
+    def draw_flag(self, qp):
+        x, y = randint(0, 560), randint(0, 420)
+        r = randint(0, 200)
+        h, g, b = randint(0, 255), randint(0, 255), randint(0, 255)
+        self.sps.append((x, y, r, h, g, b))
+        for i in self.sps:
+            qp.setBrush(QColor(i[3], i[4], i[5]))
+            qp.drawEllipse(i[0], i[1], i[2], i[2])
+
+
+def except_hook(cls, exception, traceback):
+    sys.__excepthook__(cls, exception, traceback)
 
 
 if __name__ == '__main__':
-    pygame.init()
-    fps = 60
-
-    SIZE = width, height = 400, 400
-    screen = pygame.display.set_mode((width, height))
-    pygame.display.set_caption("Клечатое поле")
-    board = Minesweeper(10, 10)
-    board.set_view(0, 0, 40)
-    running = True
-
-    while running:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 1:
-                    board.open_cell(event.pos)
-
-        screen.fill((0, 0, 0))
-        board.render(screen)
-        pygame.display.flip()
-pygame.quit()
+    app = QApplication(sys.argv)
+    form = Git()
+    form.show()
+    sys.excepthook = except_hook
+    sys.exit(app.exec())

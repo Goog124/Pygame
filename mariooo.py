@@ -93,7 +93,6 @@ class Player(pygame.sprite.Sprite):
             self.pos_y -= 1
         elif move == 4:
             self.pos_y += 1
-
         self.rect = self.image.get_rect().move(
             tile_width * self.pos_x + 15, tile_height * self.pos_y + 5)
 
@@ -115,7 +114,9 @@ def generate_level(level):
                 Tile('wall', x, y)
             elif level[y][x] == '@':
                 Tile('empty', x, y)
-                new_player = Player(x, y)
+                p_x = x
+                p_y = y
+    new_player = Player(p_x, p_y)
     # вернем игрока, а также размер поля в клетках
     return new_player, x, y
 

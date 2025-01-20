@@ -1,9 +1,10 @@
-
+import random
 
 import pygame
 import sys
 import os
 
+GRAVITY = 0.01
 
 FPS = 50
 def terminate():
@@ -117,6 +118,7 @@ class Player(pygame.sprite.Sprite):
                 self.rect = self.image.get_rect().move(
                     tile_width * self.pos_x + 5, tile_height * self.pos_y + 6)
             else:
+                create_particles((tile_width * self.pos_x + 5, tile_height * self.pos_y + 6))
                 self.pos_x = p_x
                 self.pos_y = p_y
 
@@ -133,6 +135,7 @@ player = None
 all_sprites = pygame.sprite.Group()
 tiles_group = pygame.sprite.Group()
 player_group = pygame.sprite.Group()
+star_sprites = pygame.sprite.Group()
 
 def generate_level(level):
     new_player, x, y = None, None, None
@@ -152,18 +155,62 @@ def generate_level(level):
     # вернем игрока, а также размер поля в клетках
     return new_player, x, y
 
+
+
+
+class Particle(pygame.sprite.Sprite):
+    # сгенерируем частицы разного размера
+    fire = [load_image("star.png")]
+    for scale in (5, 10, 20):
+        fire.append(pygame.transform.scale(fire[0], (scale, scale)))
+
+    def __init__(self, pos, dx, dy):
+        super().__init__(star_sprites)
+        self.image = random.choice(self.fire)
+        self.rect = self.image.get_rect()
+
+        # у каждой частицы своя скорость — это вектор
+        self.velocity = [dx, dy]
+        # и свои координаты
+        self.rect.x, self.rect.y = pos
+
+        # гравитация будет одинаковой (значение константы)
+        self.gravity = GRAVITY
+
+    def update(self):
+        # применяем гравитационный эффект:
+        # движение с ускорением под действием гравитации
+        self.velocity[1] += self.gravity
+        # перемещаем частицу
+        self.rect.x += self.velocity[0]
+        self.rect.y += self.velocity[1]
+        # убиваем, если частица ушла за экран
+        if not self.rect.colliderect(screen_rect):
+            self.kill()
+
+def create_particles(position):
+    # количество создаваемых частиц
+    particle_count = 200
+    # возможные скорости
+    numbers = range(-5, 6)
+    for _ in range(particle_count):
+        Particle(position, random.choice(numbers), random.choice(numbers))
+
 if __name__ == '__main__':
     pygame.init()
     running = True
     clock = pygame.time.Clock()
     player, level_x, level_y = generate_level(load_level('map.txt'))
     size = width, height = (level_x + 1) * 50, (level_y + 1) * 50
+    screen_rect = (0, 0, width, height)
     screen = pygame.display.set_mode(size)
     while running:
         tick = clock.tick()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                create_particles(pygame.mouse.get_pos())
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
                     player_group.update(1)
@@ -177,5 +224,7 @@ if __name__ == '__main__':
         screen.fill((255, 255, 255))
         tiles_group.draw(screen)
         player_group.draw(screen)
+        star_sprites.update()
+        star_sprites.draw(screen)
         pygame.display.flip()
     pygame.quit()

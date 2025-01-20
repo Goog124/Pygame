@@ -1,3 +1,5 @@
+
+
 import pygame
 import sys
 import os
@@ -63,9 +65,10 @@ tile_images = {
     'wall': load_image('box.png'),
     'empty': load_image('grass.png')
 }
-player_image = load_image('mario.png')
+player_image = load_image('dino.png')
 
 tile_width = tile_height = 50
+spisok = []
 
 class Tile(pygame.sprite.Sprite):
     def __init__(self, tile_type, pos_x, pos_y):
@@ -77,25 +80,52 @@ class Tile(pygame.sprite.Sprite):
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
+        self.iter = 0
         super().__init__(player_group, all_sprites)
-        self.image = player_image
         self.pos_x = pos_x
         self.pos_y = pos_y
+        self.frames = []
+        self.cut_sheet(player_image, 8, 2)
+        self.cur_frame = 0
+        self.image = self.frames[self.cur_frame]
         self.rect = self.image.get_rect().move(
-            tile_width * pos_x + 15, tile_height * pos_y + 5)
+            tile_width * pos_x + 5, tile_height * pos_y + 6)
+
+    def cut_sheet(self, sheet, columns, rows):
+        self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
+                                sheet.get_height() // rows)
+        for j in range(rows):
+            for i in range(columns):
+                frame_location = (self.rect.w * i, self.rect.h * j)
+                self.frames.append(sheet.subsurface(pygame.Rect(
+                    frame_location, self.rect.size)))
 
     def update(self, move):
-        if move == 1:
-            self.pos_x -= 1
-        elif move == 2:
-            self.pos_x += 1
-        elif move == 3:
-            self.pos_y -= 1
-        elif move == 4:
-            self.pos_y += 1
-        self.rect = self.image.get_rect().move(
-            tile_width * self.pos_x + 15, tile_height * self.pos_y + 5)
+        if move:
+            p_x = self.pos_x
+            p_y = self.pos_y
 
+            if move == 1:
+                self.pos_x -= 1
+            elif move == 2:
+                self.pos_x += 1
+            elif move == 3:
+                self.pos_y -= 1
+            elif move == 4:
+                self.pos_y += 1
+            if (self.pos_x, self.pos_y) not in spisok:
+                self.rect = self.image.get_rect().move(
+                    tile_width * self.pos_x + 5, tile_height * self.pos_y + 6)
+            else:
+                self.pos_x = p_x
+                self.pos_y = p_y
+
+
+        if self.iter > 80:
+            self.cur_frame = (self.cur_frame + 1) % len(self.frames)
+            self.image = self.frames[self.cur_frame]
+            self.iter = 0
+        self.iter += tick
 # основной персонаж
 player = None
 
@@ -112,11 +142,13 @@ def generate_level(level):
                 Tile('empty', x, y)
             elif level[y][x] == '#':
                 Tile('wall', x, y)
+                spisok.append((x, y))
             elif level[y][x] == '@':
                 Tile('empty', x, y)
                 p_x = x
                 p_y = y
-    new_player = Player(p_x, p_y)
+                new_player = Player(p_x, p_y)
+
     # вернем игрока, а также размер поля в клетках
     return new_player, x, y
 
@@ -128,6 +160,7 @@ if __name__ == '__main__':
     size = width, height = (level_x + 1) * 50, (level_y + 1) * 50
     screen = pygame.display.set_mode(size)
     while running:
+        tick = clock.tick()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
@@ -140,7 +173,9 @@ if __name__ == '__main__':
                     player_group.update(3)
                 elif event.key == pygame.K_DOWN:
                     player_group.update(4)
+        player_group.update(None)
         screen.fill((255, 255, 255))
-        all_sprites.draw(screen)
+        tiles_group.draw(screen)
+        player_group.draw(screen)
         pygame.display.flip()
     pygame.quit()

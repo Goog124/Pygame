@@ -2,7 +2,6 @@ import pygame
 import sys
 import os
 
-from pygame.examples.sprite_texture import sprite
 
 FPS = 50
 
@@ -34,7 +33,7 @@ def start_screen():
             if event.type == pygame.QUIT:
                 terminate()
             elif event.type == pygame.KEYDOWN or \
-                    event.type == pygame.MOUSEBUTTONDOWN:
+                    event.type == pygame.MOUSEMOTION:
                 return  # начинаем игру
         pygame.display.flip()
         clock.tick(FPS)
@@ -95,7 +94,7 @@ if __name__ == '__main__':
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
-            elif event.type == pygame.MOUSEBUTTONDOWN:
+            elif event.type == pygame.MOUSEMOTION:
                 Landing(event.pos)
         screen.fill((255, 255, 255))
         all_sprites.update()

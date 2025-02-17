@@ -41,7 +41,7 @@ toponym_coodrinates = toponym["Point"]["pos"]
 # Долгота и широта:
 toponym_longitude, toponym_lattitude = toponym_coodrinates.split(" ")
 
-apikey = "f3a0fe3a-b07e-4840-a1da-06f18b2ddf13"
+apikey = "5815d7d2-6bbe-424d-a32d-028b8c596fa2"
 
 # Собираем параметры для запроса к StaticMapsAPI:
 map_params = {
@@ -54,6 +54,7 @@ map_params = {
 map_api_server = "https://static-maps.yandex.ru/v1"
 # ... и выполняем запрос
 response = requests.get(map_api_server, params=map_params)
+print(response)
 im = BytesIO(response.content)
 opened_image = Image.open(im)
 opened_image.show()  # Создадим картинку и тут же ее покажем встроенным просмотрщиком операционной системы
